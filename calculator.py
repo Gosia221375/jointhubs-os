@@ -1,85 +1,63 @@
 import tkinter as tk
 from tkinter import messagebox
 
-def add(x, y):
-    return x + y
-
-def subtract(x, y):
-    return x - y
-
-def multiply(x, y):
-    return x * y
-
-def divide(x, y):
-    if y == 0:
-        return "Error: Division by zero"
-    return x / y
-
 class CalculatorApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Simple Calculator")
+        self.root.title("Kalkulator")
 
-        self.num1_label = tk.Label(root, text="First Number:")
-        self.num1_label.pack()
-        self.num1_entry = tk.Entry(root)
-        self.num1_entry.pack()
+        self.expression = ""
 
-        self.num2_label = tk.Label(root, text="Second Number:")
-        self.num2_label.pack()
-        self.num2_entry = tk.Entry(root)
-        self.num2_entry.pack()
+        self.display = tk.Entry(root, font=("Arial", 24), bd=10, insertwidth=2, width=14, borderwidth=4, justify='right')
+        self.display.grid(row=0, column=0, columnspan=4)
 
-        self.result_label = tk.Label(root, text="Result:")
-        self.result_label.pack()
-        self.result_var = tk.StringVar()
-        self.result_entry = tk.Entry(root, textvariable=self.result_var, state='readonly')
-        self.result_entry.pack()
+        buttons = [
+            ("%", 1, 0), ("CE", 1, 1), ("C", 1, 2), ("⌫", 1, 3),
+            ("1/x", 2, 0), ("x²", 2, 1), ("√x", 2, 2), ("÷", 2, 3),
+            ("7", 3, 0), ("8", 3, 1), ("9", 3, 2), ("×", 3, 3),
+            ("4", 4, 0), ("5", 4, 1), ("6", 4, 2), ("-", 4, 3),
+            ("1", 5, 0), ("2", 5, 1), ("3", 5, 2), ("+", 5, 3),
+            ("±", 6, 0), ("0", 6, 1), (".", 6, 2), ("=", 6, 3)
+        ]
 
-        self.add_button = tk.Button(root, text="Add", command=self.add)
-        self.add_button.pack(side=tk.LEFT)
+        for (text, row, col) in buttons:
+            if text == "=":
+                button = tk.Button(root, text=text, padx=20, pady=20, font=("Arial", 18), bg="blue", fg="white", command=self.calculate)
+            else:
+                button = tk.Button(root, text=text, padx=20, pady=20, font=("Arial", 18), command=lambda t=text: self.on_button_click(t))
+            button.grid(row=row, column=col, sticky="nsew")
 
-        self.subtract_button = tk.Button(root, text="Subtract", command=self.subtract)
-        self.subtract_button.pack(side=tk.LEFT)
+        for i in range(7):
+            root.grid_rowconfigure(i, weight=1)
+        for i in range(4):
+            root.grid_columnconfigure(i, weight=1)
 
-        self.multiply_button = tk.Button(root, text="Multiply", command=self.multiply)
-        self.multiply_button.pack(side=tk.LEFT)
+    def on_button_click(self, char):
+        if char == "C":
+            self.expression = ""
+        elif char == "CE":
+            self.expression = self.expression[:-1]
+        elif char == "±":
+            if self.expression and self.expression[0] == "-":
+                self.expression = self.expression[1:]
+            else:
+                self.expression = "-" + self.expression
+        else:
+            self.expression += char
+        self.update_display()
 
-        self.divide_button = tk.Button(root, text="Divide", command=self.divide)
-        self.divide_button.pack(side=tk.LEFT)
+    def update_display(self):
+        self.display.delete(0, tk.END)
+        self.display.insert(0, self.expression)
 
-    def get_numbers(self):
+    def calculate(self):
         try:
-            num1 = float(self.num1_entry.get())
-            num2 = float(self.num2_entry.get())
-            return num1, num2
-        except ValueError:
-            messagebox.showerror("Invalid input", "Please enter valid numbers")
-            return None, None
-
-    def add(self):
-        num1, num2 = self.get_numbers()
-        if num1 is not None:
-            result = add(num1, num2)
-            self.result_var.set(str(result))
-
-    def subtract(self):
-        num1, num2 = self.get_numbers()
-        if num1 is not None:
-            result = subtract(num1, num2)
-            self.result_var.set(str(result))
-
-    def multiply(self):
-        num1, num2 = self.get_numbers()
-        if num1 is not None:
-            result = multiply(num1, num2)
-            self.result_var.set(str(result))
-
-    def divide(self):
-        num1, num2 = self.get_numbers()
-        if num1 is not None:
-            result = divide(num1, num2)
-            self.result_var.set(str(result))
+            result = eval(self.expression.replace("×", "*").replace("÷", "/"))
+            self.expression = str(result)
+        except Exception as e:
+            messagebox.showerror("Error", "Invalid Input")
+            self.expression = ""
+        self.update_display()
 
 if __name__ == "__main__":
     root = tk.Tk()
